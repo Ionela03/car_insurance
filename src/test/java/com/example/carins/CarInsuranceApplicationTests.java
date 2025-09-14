@@ -3,12 +3,16 @@ package com.example.carins;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.carins.model.Car;
 import com.example.carins.model.InsuranceClaim;
@@ -17,6 +21,7 @@ import com.example.carins.repo.CarRepository;
 import com.example.carins.repo.InsuranceClaimRepository;
 import com.example.carins.repo.InsurancePolicyRepository;
 import com.example.carins.service.CarService;
+import com.example.carins.web.CarController;
 
 @SpringBootTest
 class CarInsuranceApplicationTests {
@@ -36,6 +41,8 @@ class CarInsuranceApplicationTests {
     @Autowired
     InsuranceClaimRepository claimRepo;
 
+    @Autowired
+    CarController controller;
     
     @Test
     void insuranceValidityBasic() {
@@ -159,4 +166,41 @@ class CarInsuranceApplicationTests {
         assertFalse(violations.isEmpty(), "Claim without description should fail validation");
     }
     
+    
+    @Test
+    void insuranceValidShouldReturn404ForUnknownCar() {
+        var ex = assertThrows(ResponseStatusException.class, () ->
+            controller.isInsuranceValid(999L, "2025-01-01")
+        );
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+    }
+
+    @Test
+    void insuranceValidShouldReturn400ForInvalidDateFormat() {
+        var carId = carRepo.findAll().get(0).getId();
+        var ex = assertThrows(ResponseStatusException.class, () ->
+            controller.isInsuranceValid(carId, "not-a-date")
+        );
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+    }
+
+    @Test
+    void insuranceValidShouldReturn400ForTooOldDate() {
+        var carId = carRepo.findAll().get(0).getId();
+        var ex = assertThrows(ResponseStatusException.class, () ->
+            controller.isInsuranceValid(carId, "1800-01-01")
+        );
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+    }
+
+    @Test
+    void insuranceValidShouldReturn400ForFutureDate() {
+        var carId = carRepo.findAll().get(0).getId();
+        var ex = assertThrows(ResponseStatusException.class, () ->
+            controller.isInsuranceValid(carId, "2200-01-01")
+        );
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+    }
+
+
 }
