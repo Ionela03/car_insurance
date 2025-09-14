@@ -1,12 +1,14 @@
 package com.example.carins.repo;
 
-import com.example.carins.model.*;
-import org.springframework.data.jpa.repository.*;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.example.carins.model.InsurancePolicy;
 
 @Repository
 public interface InsurancePolicyRepository extends JpaRepository<InsurancePolicy, Long> {
@@ -19,4 +21,6 @@ public interface InsurancePolicyRepository extends JpaRepository<InsurancePolicy
     boolean existsActiveOnDate(@Param("carId") Long carId, @Param("date") LocalDate date);
 
     List<InsurancePolicy> findByCarId(Long carId);
+
+    List<InsurancePolicy> findByCarIdOrderByStartDateAsc(Long carId);
 }

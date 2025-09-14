@@ -14,7 +14,7 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "insurancepolicy")
+@Table(name = "insurance_policy")
 public class InsurancePolicy {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

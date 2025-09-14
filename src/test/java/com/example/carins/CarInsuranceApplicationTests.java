@@ -1,5 +1,6 @@
 package com.example.carins;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -9,7 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.example.carins.model.Car;
+import com.example.carins.model.InsuranceClaim;
 import com.example.carins.model.InsurancePolicy;
+import com.example.carins.repo.CarRepository;
+import com.example.carins.repo.InsuranceClaimRepository;
 import com.example.carins.repo.InsurancePolicyRepository;
 import com.example.carins.service.CarService;
 
@@ -25,6 +30,13 @@ class CarInsuranceApplicationTests {
     @Autowired
     InsurancePolicyRepository policyRepo;
 
+    @Autowired
+    CarRepository carRepo;
+
+    @Autowired
+    InsuranceClaimRepository claimRepo;
+
+    
     @Test
     void insuranceValidityBasic() {
         assertTrue(service.isInsuranceValid(1L, LocalDate.parse("2024-06-01")));
@@ -89,5 +101,62 @@ class CarInsuranceApplicationTests {
         assertTrue(violations.isEmpty(), "No validation errors expected for valid dates");
     }
 
+
+     @Test
+    void claimWithValidDataShouldPass() {
+        Car car = carRepo.findAll().get(0);
+
+        InsuranceClaim claim = new InsuranceClaim();
+        claim.setCar(car);
+        claim.setClaimDate(LocalDate.now());
+        claim.setDescription("Minor accident");
+        claim.setAmount(BigDecimal.valueOf(1200));
+
+        var violations = validator.validate(claim);
+        assertTrue(violations.isEmpty(), "Valid claim should not have validation errors");
+
+        claimRepo.save(claim);
+        assertNotNull(claim.getId(), "Claim should be saved and have an ID");
+    }
+
+    @Test
+    void claimWithoutDateShouldFail() {
+        Car car = carRepo.findAll().get(0);
+
+        InsuranceClaim claim = new InsuranceClaim();
+        claim.setCar(car);
+        claim.setDescription("Missing date");
+        claim.setAmount(BigDecimal.valueOf(1200));
+
+        var violations = validator.validate(claim);
+        assertFalse(violations.isEmpty(), "Claim without date should fail validation");
+    }
+
+    @Test
+    void claimWithNegativeAmountShouldFail() {
+        Car car = carRepo.findAll().get(0);
+
+        InsuranceClaim claim = new InsuranceClaim();
+        claim.setCar(car);
+        claim.setClaimDate(LocalDate.now());
+        claim.setDescription("Invalid amount");
+        claim.setAmount(BigDecimal.valueOf(-50));
+
+        var violations = validator.validate(claim);
+        assertFalse(violations.isEmpty(), "Claim with negative amount should fail validation");
+    }
+
+    @Test
+    void claimWithoutDescriptionShouldFail() {
+        Car car = carRepo.findAll().get(0);
+
+        InsuranceClaim claim = new InsuranceClaim();
+        claim.setCar(car);
+        claim.setClaimDate(LocalDate.now());
+        claim.setAmount(BigDecimal.valueOf(1200));
+
+        var violations = validator.validate(claim);
+        assertFalse(violations.isEmpty(), "Claim without description should fail validation");
+    }
     
 }
