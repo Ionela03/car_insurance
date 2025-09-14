@@ -21,6 +21,7 @@ import com.example.carins.repo.CarRepository;
 import com.example.carins.repo.InsuranceClaimRepository;
 import com.example.carins.repo.InsurancePolicyRepository;
 import com.example.carins.service.CarService;
+import com.example.carins.service.PolicyExpiryScheduler;
 import com.example.carins.web.CarController;
 
 @SpringBootTest
@@ -44,6 +45,9 @@ class CarInsuranceApplicationTests {
     @Autowired
     CarController controller;
     
+    @Autowired
+    PolicyExpiryScheduler scheduler;
+
     @Test
     void insuranceValidityBasic() {
         assertTrue(service.isInsuranceValid(1L, LocalDate.parse("2024-06-01")));
@@ -203,4 +207,9 @@ class CarInsuranceApplicationTests {
     }
 
 
+    @Test
+    void shouldNotFailWhenCheckingForExpiredPolicies() {
+        scheduler.checkForExpiredPolicies();
+        assertTrue(true, "Scheduler ran without errors");
+}
 }

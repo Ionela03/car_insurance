@@ -23,4 +23,6 @@ public interface InsurancePolicyRepository extends JpaRepository<InsurancePolicy
     List<InsurancePolicy> findByCarId(Long carId);
 
     List<InsurancePolicy> findByCarIdOrderByStartDateAsc(Long carId);
+
+    List<InsurancePolicy> findByEndDate(LocalDate endDate);
 }

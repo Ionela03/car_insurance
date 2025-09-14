@@ -12,3 +12,5 @@ INSERT INTO insurance_policy (id, car_id, provider, start_date, end_date) VALUES
 INSERT INTO insurance_claim (car_id, claim_date, description, amount) VALUES (1, DATE '2025-05-15', 'Accident minor', 500.00);
 
 INSERT INTO insurance_claim (car_id, claim_date, description, amount) VALUES (1, DATE '2025-06-10', 'Geam spart', 200.00);
+
+INSERT INTO insurance_policy (car_id, provider, start_date, end_date) VALUES (1, 'TestInsurance', DATE '2025-01-01', DATE '2025-09-14');
