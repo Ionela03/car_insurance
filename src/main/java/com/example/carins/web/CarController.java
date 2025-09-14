@@ -2,6 +2,7 @@ package com.example.carins.web;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,10 +50,27 @@ public class CarController {
     }
 
     @GetMapping("/cars/{carId}/insurance-valid")
-    public ResponseEntity<?> isInsuranceValid(@PathVariable Long carId, @RequestParam String date) {
-        // TODO: validate date format and handle errors consistently
-        LocalDate d = LocalDate.parse(date);
-        boolean valid = service.isInsuranceValid(carId, d);
+    public ResponseEntity<?> isInsuranceValid(
+            @PathVariable Long carId,
+            @RequestParam String date) {
+
+        var car = carRepo.findById(carId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Car not found"));
+
+        // Validate date format
+        LocalDate d;
+        try {
+            d = LocalDate.parse(date);
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format, expected YYYY-MM-DD");
+        }
+
+        // Reject impossible dates
+        if (d.isBefore(LocalDate.of(1900, 1, 1)) || d.isAfter(LocalDate.of(2100, 12, 31))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Date is out of supported range (1900-2100)");
+        }
+
+        boolean valid = service.isInsuranceValid(car.getId(), d);
         return ResponseEntity.ok(new InsuranceValidityResponse(carId, d.toString(), valid));
     }
 
